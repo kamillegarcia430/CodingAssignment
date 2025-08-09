@@ -1,0 +1,106 @@
+@VolunteerScheduler_HostAddress = http://localhost:5188
+
+### Create a Volunteer Task
+POST {{VolunteerScheduler_HostAddress}}/api/VolunteerTasks
+Content-Type: application/json
+{
+  "title": "Assist in Library",
+  "start": "2025-08-10T03:10:04Z",
+  "end": "2025-08-10T04:10:04Z",
+  "numberOfAvailableSlots": 3,
+  "createdByTeacherId": 1
+}
+
+### Claim a Task
+POST {{VolunteerScheduler_HostAddress}}/api/VolunteerTasks/1/claim?parentId=1
+
+### Cancel Task Participation (Parent)
+POST {{VolunteerScheduler_HostAddress}}/api/VolunteerTasks/2/cancel?parentId=10
+Accept: application/json
+
+### Get Available Tasks
+GET {{VolunteerScheduler_HostAddress}}/api/VolunteerTasks
+Accept: application/json
+
+### Get All Tasks
+GET {{VolunteerScheduler_HostAddress}}/api/VolunteerTasks/all
+Accept: application/json
+
+### Get Tasks by Teacher
+GET {{VolunteerScheduler_HostAddress}}/api/VolunteerTasks/teacher/1
+Accept: application/json
+
+### Get Tasks by Parent
+GET {{VolunteerScheduler_HostAddress}}/api/VolunteerTasks/parent/1
+Accept: application/json
+
+### Delete a Task (Must be creator)
+DELETE {{VolunteerScheduler_HostAddress}}/api/VolunteerTasks/5?teacherId=1
+
+### Update a Task (Must be creator)
+PUT {{VolunteerScheduler_HostAddress}}/api/VolunteerTasks/update?teacherId=1
+Content-Type: application/json
+{
+  "taskId": 4,
+  "title": "Updated Library Assistance",
+  "start": "2025-08-10T03:10:04Z",
+  "end": "2025-08-10T05:10:04Z",
+  "numberOfAvailableSlots": 4,
+  "requestedByTeacherId": 1
+}
+
+
+### TEACHERS
+### Create a new teacher
+POST {{VolunteerScheduler_HostAddress}}/api/Teachers
+Content-Type: application/json
+{
+  "name": "John Doe"
+}
+
+### Get teacher by ID
+GET {{VolunteerScheduler_HostAddress}}/api/teachers/1
+
+### Get all teachers
+GET {{VolunteerScheduler_HostAddress}}/api/teachers
+
+### Update a teacher
+PUT {{VolunteerScheduler_HostAddress}}/api/teachers/3
+Content-Type: application/json
+{
+  "teacherId": 3,
+  "name": "John Updated"
+}
+
+### Delete a teacher
+DELETE {{VolunteerScheduler_HostAddress}}/api/teachers/4
+
+
+###PARENT
+
+### Create a Parent
+POST {{VolunteerScheduler_HostAddress}}/api/Parents
+Content-Type: application/json
+{
+  "name": "Alex Garcia"
+}
+
+### Get All Parents
+GET {{VolunteerScheduler_HostAddress}}/api/Parents
+Accept: application/json
+
+### Get Parent by ID
+GET {{VolunteerScheduler_HostAddress}}/api/Parents/1
+Accept: application/json
+
+### Update a Parent
+PUT {{VolunteerScheduler_HostAddress}}/api/Parents/6
+Content-Type: application/json
+{
+  "parentId": 6,
+  "name": "Alex G. Updated"
+}
+
+### Delete a Parent
+DELETE {{VolunteerScheduler_HostAddress}}/api/Parents/6
+
