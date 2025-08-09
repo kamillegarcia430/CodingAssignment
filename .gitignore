@@ -1,0 +1,16 @@
+# Visual Studio cache/settings
+.vs/
+*.user
+*.suo
+
+# Build output
+bin/
+obj/
+
+# Debug/Release folders
+[Dd]ebug/
+[Rr]elease/
+
+# Temporary files
+*.log
+*.tmp
