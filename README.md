@@ -1,6 +1,4 @@
-# Create a README.md file with the generated markdown content so the user can download it
-
-readme_content = """# Volunteer Scheduler
+# Volunteer Scheduler
 
 ## Table of Contents
 - [Overview](#overview)
@@ -23,7 +21,44 @@ cd volunteerscheduler
 # Build and run using Docker Compose
 docker-compose up --build
 
+
 # Or run locally
 dotnet restore
 dotnet build
-dotnet run --project VolunteerScheduler.API
+dotnet run
+```
+
+The API will be available at: `http://localhost:5188`
+
+Swagger documentation: `http://localhost:5188/swagger`
+
+## API Reference
+The main endpoints include:
+- `GET /api/volunteertasks` — List all tasks
+- `GET /api/volunteertasks/{id}` — Get details of a task
+- `POST /api/volunteertasks` — Create a new task
+- `PUT /api/volunteertasks/{id}` — Update a task
+- `DELETE /api/volunteertasks/{id}` — Delete a task
+- `POST /api/volunteertasks/{id}/claim?parentId={parentId}` — Claim a task
+
+For full API docs, visit the Swagger UI.
+
+## Sample Requests
+
+### Curl Example — Claim Task
+```bash
+curl -X POST "http://localhost:5188/api/tasks/1/claim?parentId=2"      -H "Content-Type: application/json"
+```
+
+### Postman Collection
+Import the Postman collection from `/VolunteerScheduler.postman_collection.json`.
+
+## Design Decisions
+1. **Clean Architecture** — Separation of concerns between API, Application, Domain, and Infrastructure layers.
+2. **Concurrency Safety** — Implemented locking in the claim task logic to prevent race conditions.
+3. **Entity Framework Core** — For data access with migrations and seed data for easy setup.
+4. **Swagger UI** — Auto-generated API documentation.
+5. **Docker Support** — Easy to run locally without manual DB setup.
+
+## License
+This project is licensed under the MIT License.
