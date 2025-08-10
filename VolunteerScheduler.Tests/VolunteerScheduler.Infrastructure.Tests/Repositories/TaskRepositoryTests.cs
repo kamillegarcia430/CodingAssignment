@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;      // For DbContext, UseNpgsql/UseSqlServer, SaveChangesAsync, etc.
+using Microsoft.Extensions.DependencyInjection; // For ServiceCollection, AddDbContext, BuildServiceProvider
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using VolunteerScheduler.Domain.Entities;
 using VolunteerScheduler.Domain.Results;
 using VolunteerScheduler.Infrastructure.Data;
 using VolunteerScheduler.Infrastructure.Repositories;
+using Microsoft.Data.Sqlite;
 
 namespace VolunteerScheduler.Infrastructure.Tests.Repositories
 {
@@ -23,6 +20,7 @@ namespace VolunteerScheduler.Infrastructure.Tests.Repositories
 
             return new AppDbContext(options);
         }
+
 
         #region AddAsync
 
@@ -305,6 +303,72 @@ namespace VolunteerScheduler.Infrastructure.Tests.Repositories
             Assert.Equal(ClaimTaskStatus.Success, result.Status);
             
         }
+
+        private AppDbContext CreateDbContext(SqliteConnection? connection = null)
+        {
+            // Use a shared in-memory connection for concurrency across multiple contexts
+            var conn = connection ?? new SqliteConnection("DataSource=:memory:");
+            conn.Open();
+
+            var options = new DbContextOptionsBuilder<AppDbContext>()
+                .UseSqlite(conn)
+                .Options;
+
+            var context = new AppDbContext(options);
+            context.Database.EnsureCreated();
+
+            return context;
+        }
+
+        [Fact]
+        public async Task TryClaimTaskAsync_Should_Handle_30_Concurrent_Claims()
+        {
+            // Shared connection so that all contexts talk to the same in-memory DB
+            var sharedConnection = new SqliteConnection("DataSource=:memory:");
+            sharedConnection.Open();
+
+            // Seed the database
+            using (var seedContext = CreateDbContext(sharedConnection))
+            {
+                var task = new VolunteerTask
+                {
+                    Id = 1,
+                    Title = "Sample Task",
+                    NumberOfAvailableSlots = 5,
+                    Start = DateTime.UtcNow,
+                    End = DateTime.UtcNow.AddHours(1),
+                    ParticipatingParents = new List<int>()
+                };
+
+                var parents = Enumerable.Range(1, 30)
+                    .Select(i => new Parent { ParentId = i , Name = $"Parent{i}"})
+                    .ToList();
+
+                seedContext.VolunteerTasks.Add(task);
+                seedContext.Parents.AddRange(parents);
+
+                await seedContext.SaveChangesAsync();
+            }
+
+            // Run 30 concurrent claims
+            var claimTasks = Enumerable.Range(1, 30)
+                .Select(async i =>
+                {
+                    using var context = CreateDbContext(sharedConnection);
+                    var repo = new TaskRepository(context);
+                    return await repo.TryClaimTaskAsync(1, i);
+                });
+
+            var results = await Task.WhenAll(claimTasks);
+
+            // Assert
+            var successCount = results.Count(r => r.Status == ClaimTaskStatus.Success);
+            var bookedCount = results.Count(r => r.Status == ClaimTaskStatus.TaskFullyBooked);
+
+            Assert.Equal(5, successCount);
+            Assert.Equal(25, bookedCount);
+        }
+
 
         #endregion
 

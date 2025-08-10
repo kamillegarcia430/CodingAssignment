@@ -105,7 +105,7 @@ namespace VolunteerScheduler.API.Tests.Commands
 
             var handler = new CreateTaskCommandHandler(taskRepoMock.Object);
 
-            var cmd = new CreateTaskCommand("Title", DateTime.Now, DateTime.Now.AddHours(1), 3, 1);
+            var cmd = new CreateTaskCommand("Title", DateTime.Now.AddHours(1), DateTime.Now.AddHours(2), 3, 1);
             var id = await handler.Handle(cmd, _ct);
 
             Assert.Equal(99, id);

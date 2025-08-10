@@ -1,6 +1,7 @@
 ﻿using System.Data;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using VolunteerScheduler.Application.Interfaces;
 using VolunteerScheduler.Domain.Entities;
 using VolunteerScheduler.Domain.Results;
@@ -79,12 +80,14 @@ namespace VolunteerScheduler.Infrastructure.Repositories
 
         public async Task<ClaimTaskResult> TryClaimTaskAsync(int taskId, int parentId)
         {
+            // Each call creates its own transaction so that concurrency works properly
             await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
 
             try
             {
-                var taskQuery = _context.VolunteerTasks.AsQueryable();
+                IQueryable<VolunteerTask> taskQuery;
 
+                // Detect if we're on Postgres and apply row lock if so
                 if (_context.Database.IsNpgsql())
                 {
                     taskQuery = _context.VolunteerTasks
@@ -92,7 +95,8 @@ namespace VolunteerScheduler.Infrastructure.Repositories
                 }
                 else
                 {
-                    taskQuery = taskQuery.Where(t => t.Id == taskId);
+                    // InMemory / other provider — no raw SQL
+                    taskQuery = _context.VolunteerTasks.Where(t => t.Id == taskId);
                 }
 
                 var task = await taskQuery.FirstOrDefaultAsync();
@@ -124,8 +128,7 @@ namespace VolunteerScheduler.Infrastructure.Repositories
                     );
                 }
 
-
-
+                // Apply claim
                 parent.ClaimedTasks.Add(task);
                 task.ParticipatingParents.Add(parentId);
                 task.NumberOfAvailableSlots--;
@@ -135,13 +138,28 @@ namespace VolunteerScheduler.Infrastructure.Repositories
 
                 return ClaimTaskResult.Success();
             }
+            catch (DbUpdateConcurrencyException)
+            {
+                await transaction.RollbackAsync();
+                return ClaimTaskResult.Failure(ClaimTaskStatus.TaskFullyBooked, "Task is fully booked.");
+            }
+            catch (DbUpdateException ex) when (ex.InnerException is PostgresException pg &&
+                (pg.SqlState == "23505" || pg.SqlState == "40001"))
+            {
+                await transaction.RollbackAsync();
+                return ClaimTaskResult.Failure(ClaimTaskStatus.TaskFullyBooked, "Task is fully booked.");
+            }
+            catch (PostgresException pg) when (pg.SqlState == "23505" || pg.SqlState == "40001")
+            {
+                await transaction.RollbackAsync();
+                return ClaimTaskResult.Failure(ClaimTaskStatus.TaskFullyBooked, "Task is fully booked.");
+            }
             catch
             {
                 await transaction.RollbackAsync();
                 return ClaimTaskResult.Failure(ClaimTaskStatus.Error, "An unexpected error occurred.");
             }
         }
-
 
         public async Task UpdateAsync(VolunteerTask task, CancellationToken cancellationToken)
         {
