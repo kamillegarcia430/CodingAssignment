@@ -1,0 +1,18 @@
+{
+  "name": "Volunteer Scheduler",
+  "image": "mcr.microsoft.com/devcontainers/dotnet:6.0", // includes .NET 6 + dev tools
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-dotnettools.csharp",
+        "ms-azuretools.vscode-docker"
+      ]
+    }
+  },
+  "forwardPorts": [5000, 5001],
+  "postCreateCommand": "dotnet restore",
+  "remoteUser": "vscode"
+}
