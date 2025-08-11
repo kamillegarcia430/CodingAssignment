@@ -32,7 +32,7 @@ Steps:
    ```
    https://<codespace-name>-5000.app.github.dev/swagger
    ```
-6. You can also access the API endpoints through Postman by updating the `{{base-url}}` to a link like this:
+6. You can also access the API endpoints through Postman by importing postman collection under `/VolunteerScheduler.postman_collection.json` and update the `{{base-url}}` to a link like this:
    ```
    https://<codespace-name>-5000.app.github.dev
    ```
