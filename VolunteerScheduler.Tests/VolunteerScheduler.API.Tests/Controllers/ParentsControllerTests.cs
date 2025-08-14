@@ -124,20 +124,17 @@ namespace VolunteerScheduler.API.Tests.Controllers
         }
 
         [Fact]
-        public async Task GetById_ShouldReturnNotFound_WhenParentNotFound()
+        public async Task GetById_ShouldThrowKeyNotFoundException_WhenParentNotFound()
         {
             // Arrange
             var parentId = 99;
-
             _mediatorMock
                 .Setup(m => m.Send(It.IsAny<GetParentByIdQuery>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((Parent?)null);
 
-            // Act
-            var result = await _controller.GetById(parentId);
-
-            // Assert
-            Assert.IsType<NotFoundResult>(result);
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<KeyNotFoundException>(() => _controller.GetById(parentId));
+            Assert.Equal($"Parent with ID {parentId} does not exist.", exception.Message);
         }
 
         [Fact]
@@ -173,19 +170,19 @@ namespace VolunteerScheduler.API.Tests.Controllers
         }
 
         [Fact]
-        public async Task Update_ShouldReturnNotFound_WhenUpdateFails()
+        public async Task Update_ShouldThrowKeyNotFoundException_WhenUpdateFails()
         {
             // Arrange
             var parentId = 1;
             var command = new UpdateParentCommand(parentId, "New Name");
-            _mediatorMock.Setup(m => m.Send(command, It.IsAny<CancellationToken>()))
-                         .ReturnsAsync(false);
 
-            // Act
-            var result = await _controller.Update(parentId, command);
+            _mediatorMock
+                .Setup(m => m.Send(command, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(false);
 
-            // Assert
-            Assert.IsType<NotFoundResult>(result);
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<KeyNotFoundException>(() => _controller.Update(parentId, command));
+            Assert.Equal($"Parent with ID {parentId} does not exist.", exception.Message);
         }
 
         [Fact]
@@ -212,11 +209,9 @@ namespace VolunteerScheduler.API.Tests.Controllers
             _mediatorMock.Setup(m => m.Send(It.IsAny<DeleteParentCommand>(), It.IsAny<CancellationToken>()))
                          .ReturnsAsync(false);
 
-            // Act
-            var result = await _controller.Delete(parentId);
-
-            // Assert
-            Assert.IsType<NotFoundResult>(result);
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<KeyNotFoundException>(() => _controller.Delete(parentId));
+            Assert.Equal($"Parent with ID {parentId} does not exist.", exception.Message);
         }
     }
 

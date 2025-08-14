@@ -57,18 +57,20 @@ namespace VolunteerScheduler.API.Tests.Controllers
         }
 
         [Fact]
-        public async Task GetTeacherById_ShouldReturnNotFound_WhenTeacherDoesNotExist()
+        public async Task GetTeacherById_ShouldThrowKeyNotFoundException_WhenTeacherDoesNotExist()
         {
+            // Arrange
             var teacherId = 999;
 
             _mediatorMock
                 .Setup(m => m.Send(It.IsAny<GetTeacherByIdQuery>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((Teacher?)null);
 
-            var result = await _controller.GetTeacherById(teacherId);
-
-            Assert.IsType<NotFoundResult>(result);
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<KeyNotFoundException>(() => _controller.GetTeacherById(teacherId));
+            Assert.Equal($"Teacher with ID {teacherId} does not exist.", exception.Message);
         }
+
 
         [Fact]
         public async Task GetAllTeachers_ShouldReturnOk_WithListOfTeachers()
@@ -119,8 +121,9 @@ namespace VolunteerScheduler.API.Tests.Controllers
         }
 
         [Fact]
-        public async Task UpdateTeacher_ShouldReturnNotFound_WhenUpdateFails()
+        public async Task UpdateTeacher_ShouldThrowKeyNotFoundException_WhenUpdateFails()
         {
+            // Arrange
             int teacherId = 1;
             var command = new UpdateTeacherCommand(teacherId, "Updated Name");
 
@@ -128,9 +131,9 @@ namespace VolunteerScheduler.API.Tests.Controllers
                 .Setup(m => m.Send(command, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(false);
 
-            var result = await _controller.UpdateTeacher(teacherId, command);
-
-            Assert.IsType<NotFoundResult>(result);
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<KeyNotFoundException>(() => _controller.UpdateTeacher(teacherId, command));
+            Assert.Equal($"Teacher with ID {teacherId} does not exist.", exception.Message);
         }
 
         [Fact]
@@ -149,18 +152,20 @@ namespace VolunteerScheduler.API.Tests.Controllers
         }
 
         [Fact]
-        public async Task DeleteTeacher_ShouldReturnNotFound_WhenDeleteFails()
+        public async Task DeleteTeacher_ShouldThrowKeyNotFoundException_WhenDeleteFails()
         {
+            // Arrange
             int teacherId = 1;
 
             _mediatorMock
                 .Setup(m => m.Send(It.IsAny<DeleteTeacherCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(false);
 
-            var result = await _controller.DeleteTeacher(teacherId);
-
-            Assert.IsType<NotFoundResult>(result);
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<KeyNotFoundException>(() => _controller.DeleteTeacher(teacherId));
+            Assert.Equal($"Teacher with ID {teacherId} does not exist.", exception.Message);
         }
+
     }
 
 }

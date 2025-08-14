@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using VolunteerScheduler.Application.Commands.ParentCommandHandlers;
 using VolunteerScheduler.Application.Queries.ParentQueries;
+using VolunteerScheduler.Domain.Entities;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace VolunteerScheduler.API.Controllers
@@ -52,7 +53,7 @@ namespace VolunteerScheduler.API.Controllers
         public async Task<IActionResult> GetById(int parentId)
         {
             var parent = await _mediator.Send(new GetParentByIdQuery(parentId));
-            return parent == null ? NotFound() : Ok(parent);
+            return parent != null ? Ok(parent) : throw new KeyNotFoundException($"Parent with ID {parentId} does not exist.");
         }
 
         [HttpPut("{parentId}")]
@@ -64,7 +65,7 @@ namespace VolunteerScheduler.API.Controllers
         {
             if (parentId != command.ParentId) return BadRequest("ID mismatch.");
             var success = await _mediator.Send(command);
-            return success ? Ok("Parent data successfully updated.") : NotFound();
+            return success ? Ok("Parent data successfully updated.") : throw new KeyNotFoundException($"Parent with ID {parentId} does not exist.");
         }
 
         [HttpDelete("{parentId}")]
@@ -75,7 +76,7 @@ namespace VolunteerScheduler.API.Controllers
         public async Task<IActionResult> Delete(int parentId)
         {
             var success = await _mediator.Send(new DeleteParentCommand(parentId));
-            return success ? Ok("Parent data successfully deleted.") : NotFound();
+            return success ? Ok("Parent data successfully deleted.") : throw new KeyNotFoundException($"Parent with ID {parentId} does not exist.");
         }
     }
 }

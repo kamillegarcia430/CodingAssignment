@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using VolunteerScheduler.Application.Commands.TeacherCommandHandlers;
 using VolunteerScheduler.Application.Queries.TeacherQueries;
+using VolunteerScheduler.Domain.Entities;
 
 namespace VolunteerScheduler.API.Controllers
 {
@@ -37,7 +38,7 @@ namespace VolunteerScheduler.API.Controllers
         {
             var teacher = await _mediator.Send(new GetTeacherByIdQuery(teacherId));
             if (teacher == null)
-                return NotFound();
+                throw new KeyNotFoundException($"Teacher with ID {teacherId} does not exist.");
 
             return Ok(teacher);
         }
@@ -64,7 +65,7 @@ namespace VolunteerScheduler.API.Controllers
                 return BadRequest("ID mismatch.");
 
             var success = await _mediator.Send(command);
-            return success ? Ok("Teacher data successfully updated.") : NotFound();
+            return success ? Ok("Teacher data successfully updated.") : throw new KeyNotFoundException($"Teacher with ID {teacherId} does not exist.");
         }
 
         [HttpDelete("{teacherId}")]
@@ -75,7 +76,7 @@ namespace VolunteerScheduler.API.Controllers
         public async Task<IActionResult> DeleteTeacher(int teacherId)
         {
             var success = await _mediator.Send(new DeleteTeacherCommand(teacherId));
-            return success ? Ok("Teacher data successfully deleted.") : NotFound();
+            return success ? Ok("Teacher data successfully deleted.") : throw new KeyNotFoundException($"Teacher with ID {teacherId} does not exist.");
         }
     }
 }

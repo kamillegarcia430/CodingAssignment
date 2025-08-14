@@ -115,18 +115,42 @@ namespace VolunteerScheduler.Infrastructure.Tests.Repositories
         #region GetParentTasksAsync
 
         [Fact]
-        public async Task GetParentTasksAsync_ShouldReturnTasksForParent()
+        public async Task GetParentTasksAsync_ShouldReturnTasks_WhenParentExists()
         {
-            var db = GetDbContext();
-            db.VolunteerTasks.Add(new VolunteerTask { Title = "Task 1", ParticipatingParents = new List<int> { 10 } });
-            db.VolunteerTasks.Add(new VolunteerTask { Title = "Task 2", ParticipatingParents = new List<int> { 20 } });
-            await db.SaveChangesAsync();
+            // Arrange
+            var dbContext = GetDbContext();
+            dbContext.Parents.Add(new Parent { ParentId = 10, Name = "Parent A" });
+            dbContext.VolunteerTasks.AddRange(
+                new VolunteerTask { Title = "Task 1", ParticipatingParents = new List<int> { 10 } },
+                new VolunteerTask { Title = "Task 2", ParticipatingParents = new List<int> { 20 } }
+            );
+            await dbContext.SaveChangesAsync();
 
-            var repo = new TaskRepository(db);
-            var result = await repo.GetParentTasksAsync(10);
+            var repository = new TaskRepository(dbContext);
 
+            // Act
+            var result = await repository.GetParentTasksAsync(10);
+
+            // Assert
             Assert.Single(result);
+            Assert.Contains(result, task => task.Title == "Task 1");
         }
+
+        [Fact]
+        public async Task GetParentTasksAsync_ShouldThrowKeyNotFound_WhenParentDoesNotExist()
+        {
+            // Arrange
+            var dbContext = GetDbContext();
+            var repository = new TaskRepository(dbContext);
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<KeyNotFoundException>(
+                () => repository.GetParentTasksAsync(99)
+            );
+
+            Assert.Equal("Parent with ID 99 not found.", exception.Message);
+        }
+
 
         #endregion
 

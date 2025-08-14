@@ -52,8 +52,9 @@ namespace VolunteerScheduler.API.Tests.Controllers
         [InlineData(false, ClaimTaskStatus.TaskNotFound)]
         [InlineData(false, ClaimTaskStatus.ParentNotFound)]
         [InlineData(false, ClaimTaskStatus.Error)]
-        public async Task ClaimTask_ReturnsExpectedResult(bool isSuccess, ClaimTaskStatus status)
+        public async Task ClaimTask_HandlesStatusesCorrectly(bool isSuccess, ClaimTaskStatus status)
         {
+            // Arrange
             var taskId = 1;
             var parentId = 10;
 
@@ -65,34 +66,39 @@ namespace VolunteerScheduler.API.Tests.Controllers
                 .Setup(m => m.Send(It.IsAny<ClaimTaskCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(result);
 
-            var response = await _controller.ClaimTask(taskId, parentId);
-
             if (isSuccess)
             {
+                // Act
+                var response = await _controller.ClaimTask(taskId, parentId);
+
+                // Assert
                 var okResult = Assert.IsType<OkObjectResult>(response);
                 Assert.Equal("Task successfully claimed.", okResult.Value);
             }
             else
             {
+                // Act & Assert
                 switch (status)
                 {
                     case ClaimTaskStatus.TaskFullyBooked:
                     case ClaimTaskStatus.OverlappingTask:
                     case ClaimTaskStatus.AlreadyClaimed:
-                        var conflictResult = Assert.IsType<ConflictObjectResult>(response);
-                        Assert.Equal("Error message", conflictResult.Value);
+                        var conflictEx = await Assert.ThrowsAsync<InvalidOperationException>(
+                            () => _controller.ClaimTask(taskId, parentId));
+                        Assert.Equal("Error message", conflictEx.Message);
                         break;
 
                     case ClaimTaskStatus.TaskNotFound:
                     case ClaimTaskStatus.ParentNotFound:
-                        var notFoundResult = Assert.IsType<NotFoundObjectResult>(response);
-                        Assert.Equal("Error message", notFoundResult.Value);
+                        var notFoundEx = await Assert.ThrowsAsync<KeyNotFoundException>(
+                            () => _controller.ClaimTask(taskId, parentId));
+                        Assert.Equal("Error message", notFoundEx.Message);
                         break;
 
                     default:
-                        var objectResult = Assert.IsType<ObjectResult>(response);
-                        Assert.Equal(500, objectResult.StatusCode);
-                        Assert.Equal("Error message", objectResult.Value);
+                        var genericEx = await Assert.ThrowsAsync<Exception>(
+                            () => _controller.ClaimTask(taskId, parentId));
+                        Assert.Equal("Error message", genericEx.Message);
                         break;
                 }
             }

@@ -43,12 +43,16 @@ namespace VolunteerScheduler.API.Controllers
 
             return result.Status switch
             {
-                ClaimTaskStatus.OverlappingTask => Conflict(result.ErrorMessage),
-                ClaimTaskStatus.TaskFullyBooked => Conflict(result.ErrorMessage),
-                ClaimTaskStatus.AlreadyClaimed => Conflict(result.ErrorMessage),
-                ClaimTaskStatus.TaskNotFound => NotFound(result.ErrorMessage),
-                ClaimTaskStatus.ParentNotFound => NotFound(result.ErrorMessage),
-                _ => StatusCode(500, result.ErrorMessage)
+                ClaimTaskStatus.TaskFullyBooked
+                    or ClaimTaskStatus.AlreadyClaimed
+                    or ClaimTaskStatus.OverlappingTask
+                        => throw new InvalidOperationException(result.ErrorMessage),
+
+                ClaimTaskStatus.TaskNotFound
+                    or ClaimTaskStatus.ParentNotFound
+                        => throw new KeyNotFoundException(result.ErrorMessage),
+
+                _ => throw new Exception(result.ErrorMessage)
             };
         }
 

@@ -1,4 +1,6 @@
 ﻿using System.Data;
+using System.Threading.Tasks;
+using System.Threading;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
@@ -66,6 +68,11 @@ namespace VolunteerScheduler.Infrastructure.Repositories
 
         public async Task<List<VolunteerTask>> GetParentTasksAsync(int parentId)
         {
+            var teacher = await _context.Parents.FirstOrDefaultAsync(t => t.ParentId == parentId);
+
+            if (teacher == null)
+                throw new KeyNotFoundException($"Parent with ID {parentId} not found.");
+
             return await _context.VolunteerTasks
                 .Where(task => task.ParticipatingParents.Any(p => p == parentId))
                 .ToListAsync();
@@ -73,6 +80,11 @@ namespace VolunteerScheduler.Infrastructure.Repositories
 
         public async Task<List<VolunteerTask>> GetTasksCreatedByTeacherAsync(int teacherId)
         {
+            var teacher = await _context.Teachers.FirstOrDefaultAsync(t => t.TeacherId == teacherId);
+
+            if (teacher == null)
+                throw new KeyNotFoundException($"Teacher with ID {teacherId} not found.");
+
             return await _context.VolunteerTasks
                 .Where(task => task.CreatedByTeacherId == teacherId)
                 .ToListAsync();
