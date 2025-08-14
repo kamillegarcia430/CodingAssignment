@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using VolunteerScheduler.Application.Commands.ParentCommandHandlers;
 using VolunteerScheduler.Application.Queries.ParentQueries;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace VolunteerScheduler.API.Controllers
 {
@@ -18,6 +19,10 @@ namespace VolunteerScheduler.API.Controllers
         }
 
         [HttpPost]
+        [SwaggerOperation(
+            Summary = "Create a new parent",
+            Description = "Creates a new parent with the provided details."
+        )]
         public async Task<IActionResult> Create([FromBody] CreateParentCommand command)
         {
             if (command == null)
@@ -29,6 +34,10 @@ namespace VolunteerScheduler.API.Controllers
         }
 
         [HttpGet]
+        [SwaggerOperation(
+            Summary = "Get all parents",
+            Description = "Retrieves a list of all parents."
+        )]
         public async Task<IActionResult> GetAll()
         {
             var parents = await _mediator.Send(new GetAllParentsQuery());
@@ -36,6 +45,10 @@ namespace VolunteerScheduler.API.Controllers
         }
 
         [HttpGet("{parentId}")]
+        [SwaggerOperation(
+            Summary = "Get a parent by ID",
+            Description = "Retrieves the parent details by their unique ID."
+        )]
         public async Task<IActionResult> GetById(int parentId)
         {
             var parent = await _mediator.Send(new GetParentByIdQuery(parentId));
@@ -43,6 +56,10 @@ namespace VolunteerScheduler.API.Controllers
         }
 
         [HttpPut("{parentId}")]
+        [SwaggerOperation(
+            Summary = "Update parent details",
+            Description = "Updates parent details by ID."
+        )]
         public async Task<IActionResult> Update(int parentId, [FromBody] UpdateParentCommand command)
         {
             if (parentId != command.ParentId) return BadRequest("ID mismatch.");
@@ -51,6 +68,10 @@ namespace VolunteerScheduler.API.Controllers
         }
 
         [HttpDelete("{parentId}")]
+        [SwaggerOperation(
+            Summary = "Delete a parent",
+            Description = "Deletes a parent by their ID."
+        )]
         public async Task<IActionResult> Delete(int parentId)
         {
             var success = await _mediator.Send(new DeleteParentCommand(parentId));

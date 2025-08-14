@@ -27,7 +27,7 @@ Steps:
    ```bash
    docker-compose up --build
    ```  
-4. Open the **Ports** tab in Codespaces, find port `5000`, and click **Open in Browser**.  
+4. Open the **Ports** tab in Codespaces, find port `5000`, set port visibility to `Public`, and click **Open in Browser**.  
 5. The browser will open the API root URL. Append `/swagger` to the URL to access API docs, e.g.:  
    ```
    https://<codespace-name>-5000.app.github.dev/swagger
