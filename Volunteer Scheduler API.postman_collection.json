@@ -151,7 +151,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"title\": \"Bake Sale NEW\",\n    \"start\": \"2025-08-12T09:00:00Z\",\n    \"end\": \"2025-08-12T12:00:00Z\",\n    \"numberOfAvailableSlots\": 5,\n    \"createdByTeacherId\": 1\n}"
+							"raw": "{\n    \"title\": \"Task B\",\n    \"start\": \"2025-08-17T09:00:00Z\",\n    \"end\": \"2025-08-17T12:00:00Z\",\n    \"numberOfOpenSlots\": 3,\n    \"createdByTeacherId\": 1\n}"
 						},
 						"url": {
 							"raw": "{{baseURL}}/api/volunteertasks",
